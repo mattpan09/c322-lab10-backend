@@ -1,7 +1,8 @@
 package edu.iu.habahram.ducksservice.controllers;
 
-import edu.iu.habahram.ducksservice.model.DuckData;
 import edu.iu.habahram.ducksservice.model.Duck;
+import edu.iu.habahram.ducksservice.model.DuckData;
+import edu.iu.habahram.ducksservice.repository.DucksFileRepository;
 import edu.iu.habahram.ducksservice.repository.DucksRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,17 +19,20 @@ import java.util.List;
 public class DuckController {
 
     private DucksRepository ducksRepository;
+    private DucksFileRepository ducksFileRepository;
 
-    public DuckController(DucksRepository ducksRepository) {
+    public DuckController(DucksRepository ducksRepository, DucksFileRepository ducksFileRepository) {
         this.ducksRepository = ducksRepository;
+        this.ducksFileRepository = ducksFileRepository;
     }
 
 
    @PostMapping
-    public int add(@RequestBody DuckData duck) {
+    public String add(@RequestBody DuckData duck) {
        try {
-           return ducksRepository.add(duck);
-       } catch (IOException e) {
+           ducksRepository.save(duck);
+           return "Duck added successfully";
+       } catch (Exception e) {
            throw new RuntimeException(e);
        }
    }
@@ -37,7 +41,10 @@ public class DuckController {
     public List<DuckData> findAll() {
         try {
             return ducksRepository.findAll();
-        } catch (IOException e) {
+
+
+
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -45,7 +52,7 @@ public class DuckController {
     @GetMapping("/{id}")
     public ResponseEntity<DuckData> find(@PathVariable int id) {
         try {
-            DuckData duck = ducksRepository.find(id);
+            DuckData duck = ducksRepository.findById(id);
             if(duck != null) {
                 return ResponseEntity
                         .status(HttpStatus.FOUND)
@@ -55,7 +62,7 @@ public class DuckController {
                         .status(HttpStatus.NOT_FOUND)
                         .body(null);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
@@ -64,7 +71,7 @@ public class DuckController {
     public boolean updateImage(@PathVariable int id,
                                @RequestParam MultipartFile file) {
         try {
-            return ducksRepository.updateImage(id, file);
+            return ducksFileRepository.updateImage(id, file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -74,7 +81,7 @@ public class DuckController {
     public boolean updateAudio(@PathVariable int id,
                                @RequestParam MultipartFile file) {
         try {
-            return ducksRepository.updateAudio(id, file);
+            return ducksFileRepository.updateAudio(id, file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -83,7 +90,7 @@ public class DuckController {
     @GetMapping("/{id}/image")
     public ResponseEntity<?> getImage(@PathVariable int id) {
         try {
-            byte[] image = ducksRepository.getImage(id);
+            byte[] image = ducksFileRepository.getImage(id);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .contentType(MediaType.IMAGE_PNG)
                     .body(image);
@@ -95,7 +102,7 @@ public class DuckController {
     @GetMapping("/{id}/audio")
     public ResponseEntity<?> getAudio(@PathVariable int id) {
         try {
-            byte[] image = ducksRepository.getAudio(id);
+            byte[] image = ducksFileRepository.getAudio(id);
             return ResponseEntity.status(HttpStatus.FOUND)
                     .contentType(MediaType.valueOf("audio/mp3"))
                     .body(image);
