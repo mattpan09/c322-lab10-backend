@@ -28,10 +28,11 @@ public class DuckController {
 
 
    @PostMapping
-    public String add(@RequestBody DuckData duck) {
+    public int add(@RequestBody DuckData duck) {
        try {
            ducksRepository.save(duck);
-           return "Duck added successfully";
+           //return "Duck added successfully";
+           return duck.getId();
        } catch (Exception e) {
            throw new RuntimeException(e);
        }
